@@ -1,4 +1,4 @@
-﻿# Predictive Modeling of Loan Defaults in the Banking Sector using Artificial Neural Networks
+# Predictive Modeling of Loan Defaults in the Banking Sector using Artificial Neural Networks
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![TensorFlow 2.10+](https://img.shields.io/badge/TensorFlow-2.10%2B-orange.svg)](https://www.tensorflow.org/)
@@ -99,19 +99,19 @@ All strategies were evaluated on an isolated out-of-time test set of **240,111 l
 
 ### 1. French Amortization & Expected Profit
 
-To calculate the money the bank receives from a paying borrower versus what it costs to maintain the loan, the French Amortization System (constant monthly installments) was modeled:
+To calculate the money the bank receives from a paying borrower versus what it costs to maintain the loan, the French Amortization System (constant monthly installments) was modeled. For a loan with principal $P$ (`loan_amnt`), annual interest rate $I$ (`int_rate`), and duration $n = \text{term}$ (months), the monthly installment $PMT$ is:
 
-$$PMT = \text{loan\_amnt} \cdot \frac{r(1+r)^n}{(1+r)^n - 1}$$
+$$PMT = P \cdot \frac{r(1+r)^n}{(1+r)^n - 1}$$
 
-where $r = \frac{\text{int\_rate}}{1200}$ and $n = \text{term}$ (months). The gross expected interest is:
+where $r = \frac{I}{1200}$ is the monthly interest rate. The gross expected interest is:
 
-$$\text{Expected Interest} = (PMT \cdot n) - \text{loan\_amnt}$$
+$$\text{Expected Interest} = (PMT \cdot n) - P$$
 
-Accounting for the **Cost of Funds (CoF)** at an annualized rate of $c = 3.0\%$ ($r_{\text{CoF}} = \frac{0.03}{12}$):
+Accounting for the **Cost of Funds (CoF)** at an annualized wholesale funding rate of $c = 3.0\%$ ($r_{\text{CoF}} = \frac{0.03}{12}$):
 
-$$PMT_{\text{CoF}} = \text{loan\_amnt} \cdot \frac{c(1+c)^n}{(1+c)^n - 1}$$
+$$PMT_{\text{CoF}} = P \cdot \frac{r_{\text{CoF}}(1+r_{\text{CoF}})^n}{(1+r_{\text{CoF}})^n - 1}$$
 
-$$\text{Expected CoF} = (PMT_{\text{CoF}} \cdot n) - \text{loan\_amnt}$$
+$$\text{Expected CoF} = (PMT_{\text{CoF}} \cdot n) - P$$
 
 $$\text{Expected Profit} = \text{Expected Interest} - \text{Expected CoF}$$
 
@@ -119,11 +119,11 @@ $$\text{Expected Profit} = \text{Expected Interest} - \text{Expected CoF}$$
 
 Realized LGD was computed from actual recovery cash flows:
 
-$$\text{Cash In} = \text{total\_rec\_prncp} + \text{total\_rec\_int} + \text{total\_rec\_late\_fee} + (\text{recoveries} - \text{collection\_recovery\_fee})$$
+$$\text{Cash In} = \text{Rec. Principal} + \text{Rec. Interest} + \text{Late Fees} + (\text{Recoveries} - \text{Collection Fees})$$
 
-$$\text{months\_active} = \text{clip}\left(\frac{\text{total\_pymnt}}{PMT}, 0, n\right)$$
+$$\text{months active} = \min\left(n, \max\left(0, \frac{\text{total pymnt}}{PMT}\right)\right)$$
 
-$$\text{Cash Out} = \text{loan\_amnt} + \text{Expected CoF} \cdot \frac{\text{months\_active}}{n}$$
+$$\text{Cash Out} = P + \text{Expected CoF} \cdot \frac{\text{months active}}{n}$$
 
 $$\text{Real LGD} = \max(0, \text{Cash Out} - \text{Cash In})$$
 
@@ -131,7 +131,7 @@ $$\text{Real LGD} = \max(0, \text{Cash Out} - \text{Cash In})$$
 
 ### 3. Custom Financial Loss Function
 
-To embed these cash flows directly into backpropagation without gradient explosion, costs were normalized by the average loan amount ($\bar{P} = \text{mean\_loan} \approx €15,000$):
+To embed these cash flows directly into backpropagation without gradient explosion, costs were normalized by the average loan amount ($\bar{P} = \text{mean loan} \approx €15,000$):
 
 $$\mathcal{L}_{\text{Financial}}(\mathbf{y}_{\text{ext}}, \hat{p}) = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \cdot \frac{\text{Real LGD}_i}{\bar{P}} \cdot \log(\hat{p}_i) + (1 - y_i) \cdot \frac{\text{Expected Profit}_i}{\bar{P}} \cdot \log(1 - \hat{p}_i) \right]$$
 
