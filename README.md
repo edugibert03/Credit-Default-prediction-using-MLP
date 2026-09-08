@@ -103,7 +103,7 @@ To calculate the money the bank receives from a paying borrower versus what it c
 
 $$PMT = P \cdot \frac{r(1+r)^n}{(1+r)^n - 1}$$
 
-where $r = \frac{I}{1200}$ is the monthly interest rate. The gross expected interest is:
+where $r = \frac{I}{12}$ is the monthly interest rate (with annual interest rate $I = \frac{\text{int\_rate}}{100}$). The gross expected interest is:
 
 $$\text{Expected Interest} = (PMT \cdot n) - P$$
 
