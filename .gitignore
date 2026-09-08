@@ -1,0 +1,42 @@
+﻿# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# Large datasets & binary data files (DO NOT COMMIT TO GITHUB)
+*.csv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.zip
+*.tar.gz
+*.rar
+data/
+
+# Output & model weights
+models/
+checkpoints/
+saved_models/
+*.keras
+*.weights.h5
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
